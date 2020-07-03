@@ -1,5 +1,3 @@
-# Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -34,6 +32,7 @@ Types of changes
 ### Fixed
  - Executables can be compiled without the library !60
  - All dune cmake flags are now transitively passed to dune-copasi targets !60
+ - Only build pattern on components that react to each other !21
 
 ## [1.0.0] ([git-diff][1.0.0-diff]) - 2021-02-11
 ### Added
@@ -59,7 +58,7 @@ Types of changes
 - CI scripts are improved to simplfy usage !49
 - Simplify build and usage on docker containers !49
 - Drastically reduce size of final docker container !49
-- Improve performance on cases with no interaction between all species !43
+- Improve performance on cases with no interaction between all species !48
 - `dune-logging` and `dune-multidomaingrid` no longer require a COPASI namespace fork !53
 ### Removed
 - Automatic flux between compartment components with same name !30
