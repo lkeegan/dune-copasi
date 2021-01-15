@@ -4,13 +4,15 @@
 #include <dune/common/exceptions.hh>
 #include <dune/common/float_cmp.hh>
 
-#include <tiffio.h>
-
 #include <memory>
 #include <queue>
 #include <string>
 
 namespace Dune::Copasi {
+
+namespace Detail {
+#include <tiffio.h>
+}
 
 /**
  * @brief      This class describes a tiff grayscale.
@@ -40,7 +42,7 @@ class TIFFGrayscale
      * @param[in]  col_size   The column size
      * @param[in]  zero       Zero based grayscale?
      */
-    TIFFGrayscaleRow(TIFF* const tiff_file,
+    TIFFGrayscaleRow(Detail::TIFF* const tiff_file,
                      const T& row,
                      const short& col_size,
                      const bool& zero)
@@ -48,10 +50,10 @@ class TIFFGrayscale
       , _col_size(col_size)
       , _zero(zero)
     {
-      T* raw_buffer = (T*)_TIFFmalloc(TIFFScanlineSize(tiff_file));
-      auto deleter = [](auto& ptr) { _TIFFfree(ptr); };
+      T* raw_buffer = (T*)Detail::_TIFFmalloc(Detail::TIFFScanlineSize(tiff_file));
+      auto deleter = [](auto& ptr) { Detail::_TIFFfree(ptr); };
       _tiff_buffer = std::shared_ptr<T>(raw_buffer, deleter);
-      TIFFReadScanline(tiff_file, _tiff_buffer.get(), _row);
+      Detail::TIFFReadScanline(tiff_file, _tiff_buffer.get(), _row);
     }
 
     /**
@@ -102,14 +104,14 @@ public:
    * @param[in]  max_cache  The maximum row cache.
    */
   TIFFGrayscale(const std::string& filename, std::size_t max_cache = 8)
-    : _tiff_file(TIFFOpen(filename.c_str(), "r"))
+    : _tiff_file(Detail::TIFFOpen(filename.c_str(), "r"))
     , _max_cache(max_cache)
   {
     if (not _tiff_file)
       DUNE_THROW(IOError, "Error opening TIFF file '" << filename << "'.");
 
     short photometric;
-    TIFFGetField(_tiff_file, TIFFTAG_PHOTOMETRIC, &photometric);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_PHOTOMETRIC, &photometric);
     if ((photometric != PHOTOMETRIC_MINISWHITE) and
         (photometric != PHOTOMETRIC_MINISBLACK))
       DUNE_THROW(IOError,
@@ -117,30 +119,30 @@ public:
     _zero = (bool)photometric;
 
     short bits_per_sample;
-    TIFFGetField(_tiff_file, TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
 
     if (bits_per_sample != 8 * sizeof(T)) {
-      TIFFClose(_tiff_file);
+      Detail::TIFFClose(_tiff_file);
       DUNE_THROW(IOError,
                  "TIFF file '" << filename
                                << "' contains a non-readable grayscale field.");
     }
 
-    TIFFGetField(_tiff_file, TIFFTAG_IMAGELENGTH, &_row_size);
-    TIFFGetField(_tiff_file, TIFFTAG_IMAGEWIDTH, &_col_size);
-    TIFFGetField(_tiff_file, TIFFTAG_XRESOLUTION, &_x_res);
-    TIFFGetField(_tiff_file, TIFFTAG_YRESOLUTION, &_y_res);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_IMAGELENGTH, &_row_size);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_IMAGEWIDTH, &_col_size);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_XRESOLUTION, &_x_res);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_YRESOLUTION, &_y_res);
     assert(FloatCmp::gt(_x_res, 0.f));
     assert(FloatCmp::gt(_y_res, 0.f));
     _x_off = _y_off = 0.;
-    TIFFGetField(_tiff_file, TIFFTAG_XPOSITION, &_x_off);
-    TIFFGetField(_tiff_file, TIFFTAG_YPOSITION, &_y_off);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_XPOSITION, &_x_off);
+    Detail::TIFFGetField(_tiff_file, TIFFTAG_YPOSITION, &_y_off);
   }
 
   /**
    * @brief      Destroys the object.
    */
-  ~TIFFGrayscale() { TIFFClose(_tiff_file); }
+  ~TIFFGrayscale() { Detail::TIFFClose(_tiff_file); }
 
   /**
    * @brief      Array indexer row operator.
@@ -234,7 +236,7 @@ private:
   }
 
 private:
-  TIFF* _tiff_file;
+  Detail::TIFF* _tiff_file;
   mutable std::deque<TIFFGrayscaleRow> _row_cache;
   short _row_size;
   short _col_size;
