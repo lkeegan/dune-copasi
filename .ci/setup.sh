@@ -82,7 +82,7 @@ git apply ../dune-copasi/.ci/dune-common.patch
 cd ../
 
 cd dune-logging
-git apply ../dune-copasi/.ci/dune-logging.patch
+#git apply ../dune-copasi/.ci/dune-logging.patch
 cd ../
 
 ls
