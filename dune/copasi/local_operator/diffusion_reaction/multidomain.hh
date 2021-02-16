@@ -3,7 +3,7 @@
 
 #include <dune/copasi/common/enum.hh>
 #include <dune/copasi/common/pdelab_expression_adapter.hh>
-#include <dune/copasi/concepts/grid.hh>
+#include <dune/copasi/concepts/multidomaingrid.hh>
 
 #include <dune/pdelab/localoperator/flags.hh>
 #include <dune/pdelab/localoperator/idefault.hh>

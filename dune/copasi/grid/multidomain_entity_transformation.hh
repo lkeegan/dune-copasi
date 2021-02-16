@@ -1,7 +1,9 @@
 #ifndef DUNE_COPASI_MULTIDOMAIN_ENTITY_TRANSFORMATION_HH
 #define DUNE_COPASI_MULTIDOMAIN_ENTITY_TRANSFORMATION_HH
 
-#include <dune/copasi/concepts/grid.hh>
+#include <dune/copasi/concepts/multidomaingrid.hh>
+
+#include <memory>
 
 namespace Dune::Copasi {
 
