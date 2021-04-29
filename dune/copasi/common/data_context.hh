@@ -1,7 +1,11 @@
 #ifndef DUNE_COPASI_CONTEXT_BASE_HH
 #define DUNE_COPASI_CONTEXT_BASE_HH
 
+#include <iostream>
 #include <type_traits>
+
+#include <dune/common/typetraits.hh>
+#include <dune/common/classname.hh>
 
 /**
 @defgroup DataContext Data Context

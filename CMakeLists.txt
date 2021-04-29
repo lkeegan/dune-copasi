@@ -30,6 +30,19 @@ option(DUNE_COPASI_COMPILE_3D
       OFF
 )
 
+# if standard C++ filesystem is not found, using a fallback is mandatory
+include(CMakeDependentOption)
+cmake_dependent_option(DUNE_USE_FALLBACK_FILESYSTEM
+    "Use bundled std::filesystem alternative (enable this for macOS older than 10.15)" OFF
+    "Filesystem_FOUND" ON
+)
+
+# option only available on cmake >= 3.16
+cmake_dependent_option(DUNE_COPASI_USE_PRECOMPILED_HEADERS
+      "Build, use, and install precompiled headers" ON
+      "${CMAKE_VERSION} VERSION_GREATER_EQUAL '3.16'" OFF
+)
+
 ########## Setup dependencies ##########
 
 # find dune dependencies
@@ -50,12 +63,6 @@ find_package(muparser REQUIRED)
 find_package(TIFF REQUIRED)
 find_package(Filesystem)
 
-# if standard C++ filesystem is not found, using a fallback is mandatory
-include(CMakeDependentOption)
-cmake_dependent_option(DUNE_USE_FALLBACK_FILESYSTEM
-    "Use bundled std::filesystem alternative (enable this for macOS older than 10.15)" OFF
-    "Filesystem_FOUND" ON
-)
 
 if(DUNE_USE_FALLBACK_FILESYSTEM)
   # let's use ghc_filesystem
@@ -111,16 +118,37 @@ endif()
 
 # create main library target
 add_library(dune-copasi)
+add_library(dune-copasi::dune-copasi ALIAS dune-copasi)
 set_target_properties(dune-copasi PROPERTIES LIBRARY_OUTPUT_NAME dunecopasi)
 set_target_properties(dune-copasi PROPERTIES ARCHIVE_OUTPUT_NAME dunecopasi)
 target_link_libraries(dune-copasi PUBLIC dune-copasi-deps PRIVATE TIFF::TIFF)
 
+if(DUNE_COPASI_USE_PRECOMPILED_HEADERS)
+  add_library(headers INTERFACE)
+  add_library(dune-copasi::headers ALIAS headers)
+  target_link_libraries(dune-copasi PRIVATE headers)
+
+  # add config definitions to headers
+  set(include_dir $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  target_precompile_headers(headers INTERFACE
+    <${include_dir}/dune/copasi/config.h>
+    <${include_dir}/dune/copasi/FC.h>)
+endif()
+
 # create executable targets
 if(DUNE_COPASI_SD_EXECUTABLE)
   add_executable(singledomain-exec)
+  add_executable(dune-copasi::singledomain-exec ALIAS singledomain-exec)
+  if(TARGET headers)
+    target_link_libraries(singledomain-exec PRIVATE headers)
+  endif()
 endif()
 if(DUNE_COPASI_MD_EXECUTABLE)
   add_executable(multidomain-exec)
+  add_executable(dune-copasi::multidomain-exec ALIAS multidomain-exec)
+  if(TARGET headers)
+    target_link_libraries(multidomain-exec PRIVATE headers)
+  endif()
 endif()
 
 ########## Include other scripts  ##########
@@ -186,15 +214,6 @@ export(EXPORT dune-copasi-targets
        FILE "${CMAKE_CURRENT_BINARY_DIR}/dune-copasi-targets.cmake"
        NAMESPACE dune-copasi::
 )
-
-# create read-only targets
-add_library(dune-copasi::dune-copasi ALIAS dune-copasi)
-if(TARGET singledomain-exec)
-  add_executable(dune-copasi::singledomain-exec ALIAS singledomain-exec)
-endif()
-if(TARGET multidomain-exec)
-  add_executable(dune-copasi::multidomain-exec ALIAS multidomain-exec)
-endif()
 
 # include tests as a sub project
 include(CTest)
