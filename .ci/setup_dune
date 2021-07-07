@@ -59,9 +59,14 @@ for module in common geometry grid istl localfunctions; do
   eval SETUP_dune_${module}_REPO=\"https://gitlab.dune-project.org/core/dune-${module}.git\"
 done
 
-for module in logging functions uggrid; do
+for module in functions uggrid; do
   eval SETUP_dune_${module}_BRANCH=\"releases/2.7\"
   eval SETUP_dune_${module}_REPO=\"https://gitlab.dune-project.org/staging/dune-${module}.git\"
+done
+
+for module in logging; do
+  eval SETUP_dune_${module}_BRANCH=\"fmt_v8\"
+  eval SETUP_dune_${module}_REPO=\"https://gitlab.dune-project.org/liam.keegan/dune-${module}.git\"
 done
 
 for module in typetree pdelab
